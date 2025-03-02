@@ -3,10 +3,6 @@ import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { fromEvent, map } from 'rxjs';
 
-const minTabWidth = 80;
-const maxTabWidth = 280;
-const shrunkTabWidth = 44;
-
 @Component({
   selector: 'app-tab-bar',
   standalone: true,
@@ -20,16 +16,17 @@ export class TabBarComponent {
 
   readonly windowWidth = toSignal(
     fromEvent(window, 'resize').pipe(
-      map(event => (event.target as Window).innerWidth)
+      map(() => window.innerWidth)
     ),
     {initialValue: window.innerWidth}
   );
+
   readonly isMobile = computed(() => this.windowWidth() <= 480);
 
   protected readonly tabWidth = computed(() => {
     const responsiveWidth = this.windowWidth() / this.tabs().length;
-    if (responsiveWidth < minTabWidth) return shrunkTabWidth;
-    if (responsiveWidth > maxTabWidth) return maxTabWidth;
+    if (responsiveWidth < 80) return 44;
+    if (responsiveWidth > 280) return 280;
     return responsiveWidth;
   });
 
@@ -41,5 +38,6 @@ export class TabBarComponent {
     effect(() => {
       console.log('tabwidth', this.tabWidth());
     });
+    console.log(this.isMobile());
   }
 }
