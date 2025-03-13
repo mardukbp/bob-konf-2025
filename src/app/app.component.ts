@@ -1,32 +1,18 @@
-import { Component, computed, signal } from '@angular/core';
-import { TabBarComponent } from './tab-bar/tab-bar.component';
+import { Component, ElementRef, viewChild } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { filter, map } from 'rxjs';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [TabBarComponent],
+  imports: [],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
-
-  // windowWidth = window.innerWidth;
-  // isMobile = window.innerWidth <= 480;
-
-  windowWidth = signal(window.innerWidth);
-  isMobile = computed(() =>
-    this.windowWidth() <= 480
+  readonly draggable = viewChild<ElementRef>('draggable');
+  readonly draggableAvailable = toObservable(this.draggable).pipe(
+    filter(elementRef => !!elementRef),
+    map(elementRef => elementRef.nativeElement)
   );
-
-  constructor() {
-    document.addEventListener('resize', () => {
-      this.windowWidth.set(window.innerWidth)
-    });
-
-    console.log(this.isMobile());
-    // document.addEventListener('resize', () => {
-    //   this.windowWidth = window.innerWidth;
-    //   this.isMobile = window.innerWidth <= 480;
-    // });
-  }
 }

@@ -15,7 +15,7 @@ export class TabBarComponent {
   readonly newTabButton = viewChild<ElementRef<HTMLButtonElement>>('newTabButton');
 
   readonly newTabButtonAvailable = toObservable(this.newTabButton).pipe(
-    filter((elementRef): elementRef is ElementRef<HTMLButtonElement> => !!elementRef),
+    filter(elementRef => !!elementRef),
     map(elementRef => elementRef.nativeElement)
   );
 
@@ -39,7 +39,6 @@ export class TabBarComponent {
       )
     ), {initialValue: []}
   );
-
 
 
   readonly windowWidth = toSignal(
