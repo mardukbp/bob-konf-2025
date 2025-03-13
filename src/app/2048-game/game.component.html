@@ -1,0 +1,7 @@
+<div class="grid">
+  <div *ngFor="let row of grid()" class="grid-row">
+    <div *ngFor="let number of row" class="grid-cell" [ngStyle]="number | tileColor">
+      {{ number }}
+    </div>
+  </div>
+</div>
