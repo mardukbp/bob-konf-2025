@@ -1,7 +1,7 @@
-import { Component, computed, effect, ElementRef, signal, viewChild } from '@angular/core';
+import { Component, computed, ElementRef, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { fromEvent, map } from 'rxjs';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { filter, fromEvent, map, merge, of, scan, startWith, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-tab-bar',
@@ -11,8 +11,36 @@ import { fromEvent, map } from 'rxjs';
   styleUrl: './tab-bar.component.scss'
 })
 export class TabBarComponent {
-  protected newTabButton = viewChild<ElementRef<HTMLButtonElement>>('newTabButton');
-  protected readonly tabs = signal<string[]>(['tab1', 'tab2', 'reallyLongTabName', 'tab3', 'tab4', 'reallyLongTabNameThatIsEvenLonger']);
+
+  readonly newTabButton = viewChild<ElementRef<HTMLButtonElement>>('newTabButton');
+
+  readonly newTabButtonAvailable = toObservable(this.newTabButton).pipe(
+    filter((elementRef): elementRef is ElementRef<HTMLButtonElement> => !!elementRef),
+    map(elementRef => elementRef.nativeElement)
+  );
+
+  readonly addNewTabEvent = this.newTabButtonAvailable.pipe(
+    switchMap(element => fromEvent(element, 'click')),
+    map(() => (tabs: string[]) => [...tabs, 'new tab'])
+  );
+
+  readonly updateEvents = merge(this.addNewTabEvent);
+
+  readonly tabs = toSignal(
+    this.httpGetTabs().pipe(
+      switchMap(initialTabs =>
+        this.updateEvents.pipe(
+          startWith(() => initialTabs),
+          scan(
+            (tabs, action) => action(tabs),
+            initialTabs
+          ),
+        )
+      )
+    ), {initialValue: []}
+  );
+
+
 
   readonly windowWidth = toSignal(
     fromEvent(window, 'resize').pipe(
@@ -34,10 +62,7 @@ export class TabBarComponent {
     Math.floor(this.windowWidth() / this.tabWidth())
   );
 
-  constructor() {
-    effect(() => {
-      console.log('tabwidth', this.tabWidth());
-    });
-    console.log(this.isMobile());
+  httpGetTabs() {
+    return of(['tab1', 'tab2', 'reallyLongTabName', 'tab3', 'tab4', 'reallyLongTabNameThatIsEvenLonger']);
   }
 }
