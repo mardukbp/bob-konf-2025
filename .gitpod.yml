@@ -1,0 +1,4 @@
+ports:
+  - port: 4200
+    onOpen: open-browser
+    name: serve
